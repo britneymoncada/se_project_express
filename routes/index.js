@@ -1,13 +1,14 @@
+/* eslint-disable import/extensions */
 import express from "express";
 import { createUser, login } from "../controllers/users.js";
 import auth from "../middlewares/auth.js";
-import itemsRouter from "./items.js";
 import usersRouter from "./users.js";
+import itemsRouter from "./items.js";
 
 const router = express.Router();
 
-router.post("/signin", login);
 router.post("/signup", createUser);
+router.post("/signin", login);
 
 router.use(auth);
 
