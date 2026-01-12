@@ -1,110 +1,108 @@
+/* eslint-disable import/extensions */
 import Item from "../models/item.js";
 
-export async function getItems(req, res) {
-  try {
-    const items = await Item.find({});
-    return res.status(200).send(items);
-  } catch (err) {
-    console.error("Error getting items:", err);
-    return res.status(500).send({ message: "Internal server error" });
+// GET /items
+export const getItems = (req, res, next) => {
+  Item.find({})
+    .then((items) => res.send(items))
+    .catch(next);
+};
+
+// POST /items
+export const createItem = (req, res, next) => {
+  const { name, weather, imageUrl } = req.body;
+  const owner = req.user._id;
+
+  if (!name || !weather || !imageUrl) {
+    return res.status(400).send({ message: "Invalid item data" });
   }
-}
 
-export async function createItem(req, res) {
-  try {
-    const { name, imageUrl, weather } = req.body;
-
-    const item = await Item.create({
-      name,
-      imageUrl,
-      weather,
-      owner: req.user._id,
+  return Item.create({
+    name,
+    weather,
+    imageUrl,
+    owner,
+  })
+    .then((item) => res.status(201).send(item))
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(400).send({ message: "Invalid item data" });
+      }
+      return next(err);
     });
+};
 
-    return res.status(201).send(item);
-  } catch (err) {
-    console.error("Error creating item:", err);
+// PUT /items/:itemId/likes
+export const likeItem = (req, res, next) => {
+  const { itemId } = req.params;
+  const userId = req.user._id;
 
-    if (err.name === "ValidationError") {
-      return res.status(400).send({ message: "Invalid item data" });
-    }
+  Item.findByIdAndUpdate(
+    itemId,
+    { $addToSet: { likes: userId } },
+    { new: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return res
+          .status(404)
+          .send({ message: "Requested resource not found" });
+      }
+      return res.send(item); // 200 OK
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(400).send({ message: "Invalid item id" });
+      }
+      return next(err);
+    });
+};
 
-    return res.status(500).send({ message: "Internal server error" });
-  }
-}
+// DELETE /items/:itemId/likes
+export const unlikeItem = (req, res, next) => {
+  const { itemId } = req.params;
+  const userId = req.user._id;
 
-export async function deleteItem(req, res) {
-  try {
-    const { itemId } = req.params;
+  Item.findByIdAndUpdate(itemId, { $pull: { likes: userId } }, { new: true })
+    .then((item) => {
+      if (!item) {
+        return res
+          .status(404)
+          .send({ message: "Requested resource not found" });
+      }
+      return res.send(item); // 200 OK
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(400).send({ message: "Invalid item id" });
+      }
+      return next(err);
+    });
+};
 
-    const item = await Item.findById(itemId);
+// DELETE /items/:itemId
+export const deleteItem = (req, res, next) => {
+  const { itemId } = req.params;
+  const userId = req.user._id;
 
-    if (!item) {
-      return res.status(404).send({ message: "Item not found" });
-    }
+  Item.findById(itemId)
+    .then((item) => {
+      if (!item) {
+        return res
+          .status(404)
+          .send({ message: "Requested resource not found" });
+      }
 
-    await item.deleteOne();
+      if (item.owner.toString() !== userId) {
+        return res.status(403).send({ message: "Forbidden" });
+      }
 
-    return res.status(200).send({ message: "Item deleted" });
-  } catch (err) {
-    console.error("Error deleting item:", err);
-
-    if (err.name === "CastError") {
-      return res.status(400).send({ message: "Invalid item id" });
-    }
-
-    return res.status(500).send({ message: "Internal server error" });
-  }
-}
-
-export async function likeItem(req, res) {
-  try {
-    const { itemId } = req.params;
-
-    const item = await Item.findByIdAndUpdate(
-      itemId,
-      { $addToSet: { likes: req.user._id } },
-      { new: true }
-    );
-
-    if (!item) {
-      return res.status(404).send({ message: "Item not found" });
-    }
-
-    return res.status(200).send(item);
-  } catch (err) {
-    console.error("Error liking item:", err);
-
-    if (err.name === "CastError") {
-      return res.status(400).send({ message: "Invalid item id" });
-    }
-
-    return res.status(500).send({ message: "Internal server error" });
-  }
-}
-
-export async function unlikeItem(req, res) {
-  try {
-    const { itemId } = req.params;
-
-    const item = await Item.findByIdAndUpdate(
-      itemId,
-      { $pull: { likes: req.user._id } },
-      { new: true }
-    );
-
-    if (!item) {
-      return res.status(404).send({ message: "Item not found" });
-    }
-
-    return res.status(200).send(item);
-  } catch (err) {
-    console.error("Error unliking item:", err);
-
-    if (err.name === "CastError") {
-      return res.status(400).send({ message: "Invalid item id" });
-    }
-
-    return res.status(500).send({ message: "Internal server error" });
-  }
-}
+      return item.deleteOne().then(() => res.send(item));
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(400).send({ message: "Invalid item id" });
+      }
+      return next(err);
+    });
+};

@@ -1,3 +1,4 @@
+/* eslint-disable import/extensions */
 import mongoose from "mongoose";
 import validator from "validator";
 
@@ -5,48 +6,37 @@ const itemSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Name is required"],
-      minlength: [2, "Name must be at least 2 characters"],
-      maxlength: [30, "Name must be at most 30 characters"],
-    },
-    imageUrl: {
-      type: String,
-      required: [true, "Image URL is required"],
-      validate: {
-        validator: (v) => validator.isURL(v),
-        message: "Image URL must be a valid URL",
-      },
+      required: true,
+      minlength: 2,
+      maxlength: 30,
     },
     weather: {
       type: String,
-      required: [true, "Weather is required"],
-      enum: {
-        values: ["hot", "warm", "cold"],
-        message: "Weather must be one of: hot, warm, cold",
+      required: true,
+      enum: ["hot", "warm", "cold"],
+    },
+    imageUrl: {
+      type: String,
+      required: true,
+      validate: {
+        validator: (v) => validator.isURL(v),
+        message: "Invalid image URL",
       },
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "user",
       required: true,
     },
-    likes: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-      ],
-      default: [],
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+        default: [],
+      },
+    ],
   },
-  { versionKey: false }
+  { timestamps: true }
 );
 
-const Item = mongoose.model("Item", itemSchema);
-
-export default Item;
+export default mongoose.model("item", itemSchema);

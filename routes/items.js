@@ -1,20 +1,19 @@
+/* eslint-disable import/extensions */
 import express from "express";
 import {
   getItems,
   createItem,
-  deleteItem,
   likeItem,
   unlikeItem,
+  deleteItem,
 } from "../controllers/items.js";
-import auth from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/items", auth, getItems);
-router.post("/items", auth, createItem);
-router.delete("/items/:itemId", auth, deleteItem);
-
-router.put("/items/:itemId/likes", auth, likeItem);
-router.delete("/items/:itemId/likes", auth, unlikeItem);
+router.get("/", getItems);
+router.post("/", createItem);
+router.put("/:itemId/likes", likeItem);
+router.delete("/:itemId/likes", unlikeItem);
+router.delete("/:itemId", deleteItem);
 
 export default router;
