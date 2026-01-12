@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -15,24 +14,40 @@ export async function getUsers(req, res, next) {
   }
 }
 
+export async function getUser(req, res, next) {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    return res.status(200).send(user);
+  } catch (err) {
+    if (err.name === "CastError") {
+      return res.status(400).send({ message: "Invalid user id" });
+    }
+    return next(err);
+  }
+}
+
 export async function createUser(req, res, next) {
   try {
-    const { name, avatar, email, password } = req.body;
-
-    const hash = await bcrypt.hash(password, 10);
+    const { name, avatar } = req.body;
 
     const user = await User.create({
       name,
       avatar,
-      email,
-      password: hash,
     });
 
-    const userObj = user.toObject();
-    delete userObj.password;
-
-    return res.status(201).send(userObj);
+    return res.status(201).send(user);
   } catch (err) {
+    if (err.name === "ValidationError") {
+      return res.status(400).send({ message: "Invalid user data" });
+    }
+
     return next(err);
   }
 }

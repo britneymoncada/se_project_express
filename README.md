@@ -1,9 +1,76 @@
 # WTWR (What to Wear?): Back End
-The back-end project is focused on creating a server for the WTWR application. You’ll gain a deeper understanding of how to work with databases, set up security and testing, and deploy web applications on a remote machine. The eventual goal is to create a server with an API and user authorization.
+
+This project is the server-side component of the WTWR (What to Wear?) application.
+It provides a RESTful API that allows clients to:
+
+Create and manage users
+
+Create, list, and delete clothing items
+
+Like and unlike items
+
+Associate clothing items with weather types
+
+Store and retrieve item owners
+
+Handle request validation and basic error handling
+
+During Sprint 12, the project focuses on learning Express.js, MongoDB/Mongoose, routing, controllers, middleware, authorization structure, and basic CRUD operations.
+
+This version includes a temporary middleware that injects a test user into req.user so that endpoints can be tested without JWT authentication. In later sprints, real authentication and authorization logic is implemented.
+
+API Functionality
+
+The API currently supports:
+
+Users
+
+POST /users — create a new user (Sprint 12 uses only name and avatar)
+
+GET /users — list all users
+
+GET /users/:userId — get a specific user by ID
+
+POST /signin — log in (password-based login implemented for later sprints)
+
+Items
+
+GET /items — list all clothing items
+
+POST /items — create an item (owner automatically assigned from req.user.\_id)
+
+DELETE /items/:itemId — delete an item by ID
+
+PUT /items/:itemId/likes — like an item
+
+DELETE /items/:itemId/likes — unlike an item
+
+Technologies Used
+
+Node.js
+
+Express.js
+
+MongoDB
+
+Mongoose ODM
+
+ES Modules (import/export syntax)
+
+bcryptjs (for password hashing in later sprints)
+
+jsonwebtoken (JWT) (login flow)
+
+Express middleware for routing, JSON parsing, temporary authorization
+
+ESLint (airbnb-base + prettier)
+
+Validator.js for URL validation
+
+Nodemon for development auto-reload
+
 ## Running the Project
-`npm run start` — to launch the server 
 
-`npm run dev` — to launch the server with the hot reload feature
+`npm run start` — to launch the server
 
-### Testing
-Before committing your code, make sure you edit the file `sprint.txt` in the root folder. The file `sprint.txt` should contain the number of the sprint you're currently working on. For ex. 12
+`npm run dev` — run the server with nodemon
