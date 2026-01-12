@@ -1,6 +1,7 @@
-import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import User from "../models/user.js";
+import { NotFoundError } from "../utils/errors.js";
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 const JWT_DEV_SECRET = "dev-secret";
@@ -33,6 +34,19 @@ export async function getUser(req, res, next) {
   }
 }
 
+export const getCurrentUser = (req, res, next) => {
+  const userId = req.user._id;
+
+  User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+      res.send(user);
+    })
+    .catch(next);
+};
+
 export async function createUser(req, res, next) {
   try {
     const { name, avatar } = req.body;
@@ -61,6 +75,7 @@ export async function login(req, res, next) {
     if (!user) {
       return res.status(401).send({ message: "Incorrect email or password" });
     }
+
     const matched = await bcrypt.compare(password, user.password);
 
     if (!matched) {
@@ -78,4 +93,3 @@ export async function login(req, res, next) {
     return next(err);
   }
 }
-export default getUsers;
