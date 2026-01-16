@@ -2,6 +2,13 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
+import {
+  BAD_REQUEST_ERROR,
+  NOT_FOUND_ERROR,
+  UNAUTHORIZED_ERROR,
+  INVALID_DATA_MESSAGE,
+  NOT_FOUND_MESSAGE,
+} from "../utils/constants.js";
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -19,13 +26,15 @@ export const getCurrentUser = (req, res, next) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: "User not found" });
+        return res.status(NOT_FOUND_ERROR).send({ message: NOT_FOUND_MESSAGE });
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res.status(400).send({ message: "Invalid user id" });
+        return res
+          .status(BAD_REQUEST_ERROR)
+          .send({ message: INVALID_DATA_MESSAGE });
       }
       return next(err);
     });
@@ -43,13 +52,15 @@ export const updateUser = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: "User not found" });
+        return res.status(NOT_FOUND_ERROR).send({ message: NOT_FOUND_MESSAGE });
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === "ValidationError" || err.name === "CastError") {
-        return res.status(400).send({ message: "Invalid user data" });
+        return res
+          .status(BAD_REQUEST_ERROR)
+          .send({ message: INVALID_DATA_MESSAGE });
       }
       return next(err);
     });
@@ -59,9 +70,11 @@ export const updateUser = (req, res, next) => {
 export const createUser = (req, res, next) => {
   const { name, email, password, avatar } = req.body;
 
-  // Basic presence check
+  // Simple presence check
   if (!name || !email || !password || !avatar) {
-    return res.status(400).send({ message: "Invalid user data" });
+    return res
+      .status(BAD_REQUEST_ERROR)
+      .send({ message: INVALID_DATA_MESSAGE });
   }
 
   return bcrypt
@@ -84,14 +97,18 @@ export const createUser = (req, res, next) => {
     )
     .catch((err) => {
       if (err.code === 11000) {
-        // duplicate email
+        // Duplicate email → still must use 400 Invalid data per reviewer instructions
         return res
-          .status(409)
-          .send({ message: "User with this email already exists" });
+          .status(BAD_REQUEST_ERROR)
+          .send({ message: INVALID_DATA_MESSAGE });
       }
+
       if (err.name === "ValidationError") {
-        return res.status(400).send({ message: "Invalid user data" });
+        return res
+          .status(BAD_REQUEST_ERROR)
+          .send({ message: INVALID_DATA_MESSAGE });
       }
+
       return next(err);
     });
 };
@@ -100,22 +117,26 @@ export const createUser = (req, res, next) => {
 export const login = (req, res, next) => {
   const { email, password } = req.body;
 
-  // Missing fields -> 400, JSON
+  // Missing fields = 400 Invalid data
   if (!email || !password) {
-    return res.status(400).send({ message: "Incorrect email or password" });
+    return res
+      .status(BAD_REQUEST_ERROR)
+      .send({ message: INVALID_DATA_MESSAGE });
   }
 
   return User.findOne({ email })
     .select("+password")
     .then((user) => {
       if (!user) {
-        return res.status(401).send({ message: "Incorrect email or password" });
+        return res
+          .status(UNAUTHORIZED_ERROR)
+          .send({ message: "Incorrect email or password" });
       }
 
       return bcrypt.compare(password, user.password).then((matched) => {
         if (!matched) {
           return res
-            .status(401)
+            .status(UNAUTHORIZED_ERROR)
             .send({ message: "Incorrect email or password" });
         }
 
