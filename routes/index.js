@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import express from "express";
 import { createUser, login } from "../controllers/users.js";
 import auth from "../middlewares/auth.js";

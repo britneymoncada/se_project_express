@@ -1,10 +1,11 @@
-/* eslint-disable import/extensions */
 import Item from "../models/item.js";
 import {
   BAD_REQUEST_ERROR,
   NOT_FOUND_ERROR,
   INVALID_DATA_MESSAGE,
   NOT_FOUND_MESSAGE,
+  FORBIDDEN_ERROR,
+  FORBIDDEN_MESSAGE,
 } from "../utils/constants.js";
 
 // GET

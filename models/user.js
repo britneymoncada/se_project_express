@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import mongoose from "mongoose";
 import validator from "validator";
 

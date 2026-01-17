@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */ // optional to remove if ESLint is fine without it
 import express from "express";
 import mongoose from "mongoose";
 import router from "./routes/index.js";
@@ -20,6 +19,7 @@ app.use((req, res) => {
   res.status(NOT_FOUND_ERROR).json({ message: NOT_FOUND_MESSAGE });
 });
 
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || INTERNAL_SERVER_ERROR;
   const message =

@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
@@ -24,6 +23,27 @@ export const getCurrentUser = (req, res, next) => {
   const userId = req.user._id;
 
   User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        return res.status(NOT_FOUND_ERROR).send({ message: NOT_FOUND_MESSAGE });
+      }
+      return res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res
+          .status(BAD_REQUEST_ERROR)
+          .send({ message: INVALID_DATA_MESSAGE });
+      }
+      return next(err);
+    });
+};
+
+// GET /users
+export const getUser = (req, res, next) => {
+  const { id } = req.params;
+
+  User.findById(id)
     .then((user) => {
       if (!user) {
         return res.status(NOT_FOUND_ERROR).send({ message: NOT_FOUND_MESSAGE });

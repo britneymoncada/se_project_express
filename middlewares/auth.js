@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import jwt from "jsonwebtoken";
 import {
   UNAUTHORIZED_ERROR,
