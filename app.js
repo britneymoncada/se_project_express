@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 import router from "./routes/index.js";
 import {
   NOT_FOUND_ERROR,
@@ -10,6 +11,7 @@ import {
 
 const { PORT = 3001 } = process.env;
 const app = express();
+app.use(cors());
 
 app.use(express.json());
 app.use(router);
@@ -19,8 +21,7 @@ app.use((req, res) => {
   res.status(NOT_FOUND_ERROR).json({ message: NOT_FOUND_MESSAGE });
 });
 
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   const statusCode = err.statusCode || INTERNAL_SERVER_ERROR;
   const message =
     statusCode === INTERNAL_SERVER_ERROR ? SERVER_ERROR_MESSAGE : err.message;

@@ -102,7 +102,7 @@ export const deleteItem = (req, res, next) => {
         return res.status(NOT_FOUND_ERROR).send({ message: NOT_FOUND_MESSAGE });
       }
 
-      if (item.owner.toString() !== userId) {
+      if (item.owner.toString() !== userId.toString()) {
         return res.status(FORBIDDEN_ERROR).send({ message: FORBIDDEN_MESSAGE });
       }
 

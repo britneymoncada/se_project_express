@@ -5,8 +5,10 @@ import {
   BAD_REQUEST_ERROR,
   NOT_FOUND_ERROR,
   UNAUTHORIZED_ERROR,
+  CONFLICT_ERROR,
   INVALID_DATA_MESSAGE,
   NOT_FOUND_MESSAGE,
+  CONFLICT_MESSAGE,
 } from "../utils/constants.js";
 
 const { NODE_ENV, JWT_SECRET } = process.env;
@@ -117,10 +119,7 @@ export const createUser = (req, res, next) => {
     )
     .catch((err) => {
       if (err.code === 11000) {
-        // Duplicate email → still must use 400 Invalid data per reviewer instructions
-        return res
-          .status(BAD_REQUEST_ERROR)
-          .send({ message: INVALID_DATA_MESSAGE });
+        return res.status(CONFLICT_ERROR).send({ message: CONFLICT_MESSAGE });
       }
 
       if (err.name === "ValidationError") {
@@ -134,7 +133,8 @@ export const createUser = (req, res, next) => {
 };
 
 // POST /signin
-export const login = (req, res, next) => {
+// POST /signin
+export const login = (req, res) => {
   const { email, password } = req.body;
 
   // Missing fields = 400 Invalid data
@@ -144,30 +144,19 @@ export const login = (req, res, next) => {
       .send({ message: INVALID_DATA_MESSAGE });
   }
 
-  return User.findOne({ email })
-    .select("+password")
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        return res
-          .status(UNAUTHORIZED_ERROR)
-          .send({ message: "Incorrect email or password" });
-      }
+      const token = jwt.sign(
+        { _id: user._id },
+        NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
+        { expiresIn: "7d" }
+      );
 
-      return bcrypt.compare(password, user.password).then((matched) => {
-        if (!matched) {
-          return res
-            .status(UNAUTHORIZED_ERROR)
-            .send({ message: "Incorrect email or password" });
-        }
-
-        const token = jwt.sign(
-          { _id: user._id },
-          NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
-          { expiresIn: "7d" }
-        );
-
-        return res.send({ token });
-      });
+      return res.send({ token });
     })
-    .catch(next);
+    .catch(() =>
+      res
+        .status(UNAUTHORIZED_ERROR)
+        .send({ message: "Incorrect email or password" })
+    );
 };
