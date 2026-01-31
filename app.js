@@ -21,12 +21,14 @@ app.use((req, res) => {
   res.status(NOT_FOUND_ERROR).json({ message: NOT_FOUND_MESSAGE });
 });
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   const statusCode = err.statusCode || INTERNAL_SERVER_ERROR;
+
   const message =
     statusCode === INTERNAL_SERVER_ERROR ? SERVER_ERROR_MESSAGE : err.message;
 
-  res.status(statusCode).send({ message });
+  res.status(statusCode).json({ message });
+  next();
 });
 
 mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");

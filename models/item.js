@@ -38,4 +38,4 @@ const itemSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("item", itemSchema);
+export default mongoose.model("clothingItem", itemSchema);

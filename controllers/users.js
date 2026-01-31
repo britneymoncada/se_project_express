@@ -13,14 +13,6 @@ import {
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
-// GET /users
-export const getUsers = (req, res, next) => {
-  User.find({})
-    .then((users) => res.send(users))
-    .catch(next);
-};
-
-// GET /users/me
 export const getCurrentUser = (req, res, next) => {
   const userId = req.user._id;
 
@@ -41,28 +33,6 @@ export const getCurrentUser = (req, res, next) => {
     });
 };
 
-// GET /users
-export const getUser = (req, res, next) => {
-  const { id } = req.params;
-
-  User.findById(id)
-    .then((user) => {
-      if (!user) {
-        return res.status(NOT_FOUND_ERROR).send({ message: NOT_FOUND_MESSAGE });
-      }
-      return res.send(user);
-    })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res
-          .status(BAD_REQUEST_ERROR)
-          .send({ message: INVALID_DATA_MESSAGE });
-      }
-      return next(err);
-    });
-};
-
-// PATCH /users/me
 export const updateUser = (req, res, next) => {
   const userId = req.user._id;
   const { name, avatar } = req.body;
@@ -88,11 +58,9 @@ export const updateUser = (req, res, next) => {
     });
 };
 
-// POST /signup
 export const createUser = (req, res, next) => {
   const { name, email, password, avatar } = req.body;
 
-  // Simple presence check
   if (!name || !email || !password || !avatar) {
     return res
       .status(BAD_REQUEST_ERROR)
@@ -132,12 +100,9 @@ export const createUser = (req, res, next) => {
     });
 };
 
-// POST /signin
-// POST /signin
-export const login = (req, res) => {
+export const login = (req, res, next) => {
   const { email, password } = req.body;
 
-  // Missing fields = 400 Invalid data
   if (!email || !password) {
     return res
       .status(BAD_REQUEST_ERROR)
@@ -154,9 +119,13 @@ export const login = (req, res) => {
 
       return res.send({ token });
     })
-    .catch(() =>
-      res
-        .status(UNAUTHORIZED_ERROR)
-        .send({ message: "Incorrect email or password" })
-    );
+    .catch((err) => {
+      if (err.message === "Incorrect email or password") {
+        return res
+          .status(UNAUTHORIZED_ERROR)
+          .send({ message: "Incorrect email or password" });
+      }
+
+      return next(err);
+    });
 };
