@@ -2,14 +2,15 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import {
-  BAD_REQUEST_ERROR,
   NOT_FOUND_ERROR,
-  UNAUTHORIZED_ERROR,
-  CONFLICT_ERROR,
   INVALID_DATA_MESSAGE,
   NOT_FOUND_MESSAGE,
   CONFLICT_MESSAGE,
 } from "../utils/constants.js";
+import BadRequestError from "../errors/BadRequestError.js";
+import NotFoundError from "../errors/NotFoundError.js";
+import ConflictError from "../errors/ConflictError.js";
+import UnauthorizedError from "../errors/UnauthorizedError.js";
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -19,15 +20,13 @@ export const getCurrentUser = (req, res, next) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND_ERROR).send({ message: NOT_FOUND_MESSAGE });
+        throw new NotFoundError(NOT_FOUND_MESSAGE);
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res
-          .status(BAD_REQUEST_ERROR)
-          .send({ message: INVALID_DATA_MESSAGE });
+        return next(new BadRequestError(INVALID_DATA_MESSAGE));
       }
       return next(err);
     });
@@ -50,9 +49,7 @@ export const updateUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError" || err.name === "CastError") {
-        return res
-          .status(BAD_REQUEST_ERROR)
-          .send({ message: INVALID_DATA_MESSAGE });
+        return next(new BadRequestError(INVALID_DATA_MESSAGE));
       }
       return next(err);
     });
@@ -62,9 +59,7 @@ export const createUser = (req, res, next) => {
   const { name, email, password, avatar } = req.body;
 
   if (!name || !email || !password || !avatar) {
-    return res
-      .status(BAD_REQUEST_ERROR)
-      .send({ message: INVALID_DATA_MESSAGE });
+    return next(new BadRequestError(INVALID_DATA_MESSAGE));
   }
 
   return bcrypt
@@ -87,13 +82,11 @@ export const createUser = (req, res, next) => {
     )
     .catch((err) => {
       if (err.code === 11000) {
-        return res.status(CONFLICT_ERROR).send({ message: CONFLICT_MESSAGE });
+        return next(new ConflictError(CONFLICT_MESSAGE));
       }
 
       if (err.name === "ValidationError") {
-        return res
-          .status(BAD_REQUEST_ERROR)
-          .send({ message: INVALID_DATA_MESSAGE });
+        return next(new BadRequestError(INVALID_DATA_MESSAGE));
       }
 
       return next(err);
@@ -103,11 +96,7 @@ export const createUser = (req, res, next) => {
 export const login = (req, res, next) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    return res
-      .status(BAD_REQUEST_ERROR)
-      .send({ message: INVALID_DATA_MESSAGE });
-  }
+  console.log("LOGIN ATTEMPT:", email);
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -121,9 +110,7 @@ export const login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.message === "Incorrect email or password") {
-        return res
-          .status(UNAUTHORIZED_ERROR)
-          .send({ message: "Incorrect email or password" });
+        return next(new UnauthorizedError("Incorrect email or password"));
       }
 
       return next(err);

@@ -4,10 +4,15 @@ import auth from "../middlewares/auth.js";
 import usersRouter from "./users.js";
 import itemsRouter from "./items.js";
 
+import {
+  validateCreateUser,
+  validateLogin,
+} from "../middlewares/validation.js";
+
 const router = express.Router();
 
-router.post("/signup", createUser);
-router.post("/signin", login);
+router.post("/signup", validateCreateUser, createUser);
+router.post("/signin", validateLogin, login);
 
 router.use("/items", itemsRouter);
 

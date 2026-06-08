@@ -1,21 +1,39 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import { errors } from "celebrate";
+
+import { requestLogger, errorLogger } from "./middlewares/logger.js";
 import router from "./routes/index.js";
 import handleErrors from "./utils/handleErrors.js";
 import { NOT_FOUND_ERROR, NOT_FOUND_MESSAGE } from "./utils/constants.js";
 
 const { PORT = 3001 } = process.env;
-const app = express();
-app.use(cors());
 
+const app = express();
+
+app.use(cors());
 app.use(express.json());
+
+app.use(requestLogger);
+
+app.get("/crash-test", () => {
+  setTimeout(() => {
+    throw new Error("Server will crash now");
+  }, 0);
+});
 app.use(router);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(NOT_FOUND_ERROR).json({ message: NOT_FOUND_MESSAGE });
+  res.status(NOT_FOUND_ERROR).json({
+    message: NOT_FOUND_MESSAGE,
+  });
 });
+
+app.use(errorLogger);
+
+app.use(errors());
 
 app.use(handleErrors);
 
