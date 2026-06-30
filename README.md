@@ -78,8 +78,6 @@ Nodemon for development auto-reload
 Frontend (se_project_react):
 
 Live site: https://soft-shares.com
-Backend repo
-Frontend repo
 
 Backend (se_project_express):
 
