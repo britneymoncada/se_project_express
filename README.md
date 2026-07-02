@@ -75,10 +75,12 @@ Nodemon for development auto-reload
 
 `npm run dev` — run the server with nodemon
 
-Frontend (se_project_react):
+## Frontend (se_project_react):
 
-Live site: https://soft-shares.com
+https://github.com/britneymoncada/se_project_react
 
-Backend (se_project_express):
+Live site: (https://soft-shares.com)
+
+## Backend (se_project_express):
 
 API: https://api.soft-shares.com
