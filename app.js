@@ -6,7 +6,8 @@ import { errors } from "celebrate";
 import { requestLogger, errorLogger } from "./middlewares/logger.js";
 import router from "./routes/index.js";
 import handleErrors from "./utils/handleErrors.js";
-import { NOT_FOUND_ERROR, NOT_FOUND_MESSAGE } from "./utils/constants.js";
+import NotFoundError from "./errors/NotFoundError.js";
+import { NOT_FOUND_MESSAGE } from "./utils/constants.js";
 
 const { PORT = 3001 } = process.env;
 
@@ -24,11 +25,8 @@ app.get("/crash-test", () => {
 });
 app.use(router);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(NOT_FOUND_ERROR).json({
-    message: NOT_FOUND_MESSAGE,
-  });
+app.use((req, res, next) => {
+  next(new NotFoundError(NOT_FOUND_MESSAGE));
 });
 
 app.use(errorLogger);

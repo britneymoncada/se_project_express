@@ -44,3 +44,17 @@ export const validateId = celebrate({
     itemId: Joi.string().hex().length(24),
   }),
 });
+
+export const validateUpdateUser = celebrate({
+  [Segments.BODY]: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    avatar: Joi.string()
+      .required()
+      .custom((value, helpers) => {
+        if (!validator.isURL(value)) {
+          return helpers.error("string.uri");
+        }
+        return value;
+      }),
+  }),
+});

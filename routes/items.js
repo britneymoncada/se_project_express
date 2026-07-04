@@ -13,12 +13,18 @@ import { validateCreateItem, validateId } from "../middlewares/validation.js";
 
 const router = express.Router();
 
+// Public route
 router.get("/", getItems);
-router.post("/", auth, validateCreateItem, createItem);
 
-router.put("/:itemId/likes", auth, validateId, likeItem);
+// Protected routes
+router.use(auth);
 
-router.delete("/:itemId/likes", auth, validateId, unlikeItem);
+router.post("/", validateCreateItem, createItem);
 
-router.delete("/:itemId", auth, validateId, deleteItem);
+router.put("/:itemId/likes", validateId, likeItem);
+
+router.delete("/:itemId/likes", validateId, unlikeItem);
+
+router.delete("/:itemId", validateId, deleteItem);
+
 export default router;

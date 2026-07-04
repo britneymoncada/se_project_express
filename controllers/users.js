@@ -2,7 +2,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import {
-  NOT_FOUND_ERROR,
   INVALID_DATA_MESSAGE,
   NOT_FOUND_MESSAGE,
   CONFLICT_MESSAGE,
@@ -43,7 +42,7 @@ export const updateUser = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND_ERROR).send({ message: NOT_FOUND_MESSAGE });
+        return next(new NotFoundError(NOT_FOUND_MESSAGE));
       }
       return res.send(user);
     })
@@ -95,8 +94,6 @@ export const createUser = (req, res, next) => {
 
 export const login = (req, res, next) => {
   const { email, password } = req.body;
-
-  console.log("LOGIN ATTEMPT:", email);
 
   return User.findUserByCredentials(email, password)
     .then((user) => {

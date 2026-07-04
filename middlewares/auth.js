@@ -1,8 +1,6 @@
 import jwt from "jsonwebtoken";
-import {
-  UNAUTHORIZED_ERROR,
-  AUTH_REQUIRED_MESSAGE,
-} from "../utils/constants.js";
+import { AUTH_REQUIRED_MESSAGE } from "../utils/constants.js";
+import UnauthorizedError from "../errors/UnauthorizedError.js";
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -10,9 +8,7 @@ export default function auth(req, res, next) {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith("Bearer ")) {
-    return res
-      .status(UNAUTHORIZED_ERROR)
-      .send({ message: AUTH_REQUIRED_MESSAGE });
+    return next(new UnauthorizedError(AUTH_REQUIRED_MESSAGE));
   }
 
   const token = authorization.replace("Bearer ", "");
@@ -24,9 +20,7 @@ export default function auth(req, res, next) {
       NODE_ENV === "production" ? JWT_SECRET : "dev-secret"
     );
   } catch (err) {
-    return res
-      .status(UNAUTHORIZED_ERROR)
-      .send({ message: AUTH_REQUIRED_MESSAGE });
+    return next(new UnauthorizedError(AUTH_REQUIRED_MESSAGE));
   }
 
   req.user = payload;
